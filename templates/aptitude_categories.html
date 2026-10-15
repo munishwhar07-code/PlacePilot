@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Aptitude Practice Modules — PlacePilot{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">Aptitude & Reasoning Practice</h2>
+    <p class="text-muted small mb-0">Sharpen your speed, accuracy, and problem-solving for campus recruitment test rounds.</p>
+  </div>
+  <div>
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fs-6">
+      <i class="bi bi-clock-history me-1"></i>{{ attempts|length }} Total Quizzes Completed
+    </span>
+  </div>
+</div>
+
+<!-- Category Cards -->
+<div class="row g-4 mb-5">
+  <!-- Quantitative Aptitude -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100 border-top border-4 border-primary">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3 align-self-start">
+          <i class="bi bi-calculator fs-3"></i>
+        </div>
+        <h4 class="card-title fw-bold">Quantitative Aptitude</h4>
+        <p class="text-muted small flex-grow-1">
+          Speed math, percentages, time & distance, profit/loss, simple interest, and work problems.
+        </p>
+        <div class="d-flex justify-content-between align-items-center py-2 mb-3 border-top border-bottom small text-muted">
+          <span><i class="bi bi-question-circle me-1"></i>{{ quant_count }} Curated Questions</span>
+          <span><i class="bi bi-check2-circle me-1 text-success"></i>Avg: {{ quant_avg }}%</span>
+        </div>
+        <a href="{{ url_for('aptitude_quiz', category='Quantitative Aptitude') }}" class="btn btn-primary w-100 fw-semibold">
+          <i class="bi bi-play-circle me-1"></i>Start Quant Quiz
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logical Reasoning -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100 border-top border-4 border-teal">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-inline-flex p-3 rounded-circle bg-teal bg-opacity-10 text-teal mb-3 align-self-start" style="color: var(--accent-teal); background-color: rgba(13, 148, 136, 0.1);">
+          <i class="bi bi-puzzle fs-3"></i>
+        </div>
+        <h4 class="card-title fw-bold">Logical Reasoning</h4>
+        <p class="text-muted small flex-grow-1">
+          Number patterns, blood relations, syllogisms, directional sense, coding-decoding, and seating logic.
+        </p>
+        <div class="d-flex justify-content-between align-items-center py-2 mb-3 border-top border-bottom small text-muted">
+          <span><i class="bi bi-question-circle me-1"></i>{{ logic_count }} Curated Questions</span>
+          <span><i class="bi bi-check2-circle me-1 text-success"></i>Avg: {{ logic_avg }}%</span>
+        </div>
+        <a href="{{ url_for('aptitude_quiz', category='Logical Reasoning') }}" class="btn btn-teal w-100 fw-semibold">
+          <i class="bi bi-play-circle me-1"></i>Start Logic Quiz
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verbal Ability -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100 border-top border-4 border-warning">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="d-inline-flex p-3 rounded-circle bg-warning bg-opacity-10 text-warning mb-3 align-self-start">
+          <i class="bi bi-translate fs-3"></i>
+        </div>
+        <h4 class="card-title fw-bold">Verbal Ability</h4>
+        <p class="text-muted small flex-grow-1">
+          Vocabulary, antonyms/synonyms, sentence correction, idioms, subject-verb agreement, and error detection.
+        </p>
+        <div class="d-flex justify-content-between align-items-center py-2 mb-3 border-top border-bottom small text-muted">
+          <span><i class="bi bi-question-circle me-1"></i>{{ verbal_count }} Curated Questions</span>
+          <span><i class="bi bi-check2-circle me-1 text-success"></i>Avg: {{ verbal_avg }}%</span>
+        </div>
+        <a href="{{ url_for('aptitude_quiz', category='Verbal Ability') }}" class="btn btn-warning text-dark w-100 fw-semibold">
+          <i class="bi bi-play-circle me-1"></i>Start Verbal Quiz
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Score History Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+    <h5 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Recent Quiz Attempt History</h5>
+    <span class="text-muted small">Real performance records saved in MongoDB</span>
+  </div>
+  <div class="card-body p-0">
+    {% if attempts %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-uppercase text-secondary">
+            <tr>
+              <th>Date & Time</th>
+              <th>Category</th>
+              <th>Score</th>
+              <th>Percentage</th>
+              <th>Performance</th>
+              <th class="text-end" style="width: 140px;">Review</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in attempts %}
+            <tr>
+              <td>
+                <div class="small fw-semibold text-dark">{{ a.created_at.strftime('%b %d, %Y - %I:%M %p') }}</div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ a.category }}</span>
+              </td>
+              <td>
+                <span class="fw-bold text-dark">{{ a.score }}</span> / {{ a.total_questions }}
+              </td>
+              <td>
+                <span class="fw-bold {% if a.percentage >= 70 %}text-success{% elif a.percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ a.percentage }}%
+                </span>
+              </td>
+              <td>
+                {% if a.percentage >= 80 %}
+                  <span class="badge bg-success-subtle text-success">Excellent</span>
+                {% elif a.percentage >= 60 %}
+                  <span class="badge bg-info-subtle text-info">Good</span>
+                {% elif a.percentage >= 40 %}
+                  <span class="badge bg-warning-subtle text-warning">Average</span>
+                {% else %}
+                  <span class="badge bg-danger-subtle text-danger">Needs Practice</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{{ url_for('aptitude_result', attempt_id=a._id) }}" class="btn btn-outline-secondary btn-sm">
+                  View Solutions <i class="bi bi-chevron-right ms-1"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-card-checklist fs-1 mb-2 d-block text-secondary"></i>
+        <h5>No Quiz Attempts Logged Yet</h5>
+        <p class="small mb-0">Select one of the 3 categories above to take your first aptitude test.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

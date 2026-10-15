@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Results & Solutions — PlacePilot{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <!-- Score Summary Card -->
+    <div class="card border-0 shadow-sm text-center mb-4 p-4">
+      <div class="card-body">
+        <div class="d-inline-flex p-3 rounded-circle {% if attempt.percentage >= 70 %}bg-success bg-opacity-10 text-success{% elif attempt.percentage >= 50 %}bg-warning bg-opacity-10 text-warning{% else %}bg-danger bg-opacity-10 text-danger{% endif %} mb-3">
+          <i class="bi {% if attempt.percentage >= 70 %}bi-trophy-fill{% else %}bi-award-fill{% endif %} fs-1"></i>
+        </div>
+        <h3 class="fw-bold mb-1">{{ attempt.category }} Quiz Results</h3>
+        <p class="text-muted small mb-3">Completed on {{ attempt.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+
+        <div class="display-4 fw-bold {% if attempt.percentage >= 70 %}text-success{% elif attempt.percentage >= 50 %}text-warning{% else %}text-danger{% endif %} mb-2">
+          {{ attempt.score }} / {{ attempt.total_questions }}
+        </div>
+        <div class="lead fw-semibold text-secondary mb-3">
+          Score: {{ attempt.percentage }}% &bull;
+          {% if attempt.percentage >= 80 %}
+            <span class="badge bg-success-subtle text-success">Excellent Performance</span>
+          {% elif attempt.percentage >= 60 %}
+            <span class="badge bg-info-subtle text-info">Good Performance</span>
+          {% elif attempt.percentage >= 40 %}
+            <span class="badge bg-warning-subtle text-warning">Average - Review Mistakes</span>
+          {% else %}
+            <span class="badge bg-danger-subtle text-danger">Needs Focused Practice</span>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{{ url_for('aptitude_categories') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>All Quizzes
+          </a>
+          <a href="{{ url_for('aptitude_quiz', category=attempt.category) }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-arrow-repeat me-1"></i>Retake Quiz
+          </a>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-teal btn-sm text-white">
+            <i class="bi bi-grid-1x2 me-1"></i>Go to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question by Question Breakdown -->
+    <h4 class="fw-bold mb-3"><i class="bi bi-check2-all text-primary me-2"></i>Detailed Question Review & Explanations</h4>
+
+    {% for res in review_items %}
+    <div class="card border-0 shadow-sm mb-4 border-start border-4 {% if res.is_correct %}border-success{% else %}border-danger{% endif %}">
+      <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+        <span class="fw-bold text-dark">Question {{ loop.index }}</span>
+        {% if res.is_correct %}
+          <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Correct (+1)</span>
+        {% else %}
+          <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Incorrect (0)</span>
+        {% endif %}
+      </div>
+      <div class="card-body p-4">
+        <p class="fs-6 fw-semibold text-dark mb-3">{{ res.question }}</p>
+
+        <div class="d-flex flex-column gap-2 mb-3">
+          {% for opt in res.options %}
+          <div class="p-3 rounded-3 border small 
+            {% if loop.index0 == res.correct_option %}
+              bg-success bg-opacity-10 border-success text-success fw-bold
+            {% elif loop.index0 == res.selected_option and not res.is_correct %}
+              bg-danger bg-opacity-10 border-danger text-danger fw-bold
+            {% else %}
+              bg-light text-secondary
+            {% endif %}">
+            <span class="me-2">{{ ['A', 'B', 'C', 'D'][loop.index0] }}.</span> {{ opt }}
+            {% if loop.index0 == res.correct_option %}
+              <span class="badge bg-success float-end"><i class="bi bi-check-lg me-1"></i>Correct Answer</span>
+            {% elif loop.index0 == res.selected_option and not res.is_correct %}
+              <span class="badge bg-danger float-end"><i class="bi bi-x-lg me-1"></i>Your Answer</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if res.selected_option is none %}
+          <div class="text-muted small mb-2"><i class="bi bi-exclamation-triangle text-warning me-1"></i>You did not select an answer for this question.</div>
+        {% endif %}
+
+        <!-- Explanation Alert -->
+        <div class="alert alert-light border small mt-2 mb-0">
+          <div class="fw-bold text-dark mb-1"><i class="bi bi-lightbulb text-warning me-1"></i>Explanation & Working:</div>
+          <div class="text-secondary">{{ res.explanation }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

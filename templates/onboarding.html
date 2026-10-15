@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Placement Onboarding — PlacePilot{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white border-0 pt-4 px-4 text-center">
+        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 mb-2">Step 1 of 1: Profile Initialization</div>
+        <h3 class="fw-bold">Welcome to PlacePilot, {{ user.name }}!</h3>
+        <p class="text-muted small">Help us calibrate your adaptive study plan, coding tasks, and placement benchmarks.</p>
+      </div>
+
+      <div class="card-body p-4">
+        <form action="{{ url_for('onboarding') }}" method="POST">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="department" class="form-label small fw-semibold">Department / Branch</label>
+              <select class="form-select" id="department" name="department" required>
+                <option value="" disabled {% if not user.department %}selected{% endif %}>Choose your branch...</option>
+                <option value="Computer Science & Engineering" {% if user.department == 'Computer Science & Engineering' %}selected{% endif %}>Computer Science & Engineering (CSE)</option>
+                <option value="Information Technology" {% if user.department == 'Information Technology' %}selected{% endif %}>Information Technology (IT)</option>
+                <option value="Electronics & Communication" {% if user.department == 'Electronics & Communication' %}selected{% endif %}>Electronics & Communication (ECE)</option>
+                <option value="Electrical & Electronics" {% if user.department == 'Electrical & Electronics' %}selected{% endif %}>Electrical & Electronics (EEE)</option>
+                <option value="Mechanical Engineering" {% if user.department == 'Mechanical Engineering' %}selected{% endif %}>Mechanical Engineering</option>
+                <option value="Civil Engineering" {% if user.department == 'Civil Engineering' %}selected{% endif %}>Civil Engineering</option>
+                <option value="Other" {% if user.department == 'Other' %}selected{% endif %}>Other Engineering / Science</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="academic_year" class="form-label small fw-semibold">Current Academic Year</label>
+              <select class="form-select" id="academic_year" name="academic_year" required>
+                <option value="" disabled {% if not user.academic_year %}selected{% endif %}>Select academic year...</option>
+                <option value="1st Year" {% if user.academic_year == '1st Year' %}selected{% endif %}>1st Year (Foundation)</option>
+                <option value="2nd Year" {% if user.academic_year == '2nd Year' or not user.academic_year %}selected{% endif %}>2nd Year (Foundation Mode)</option>
+                <option value="3rd Year" {% if user.academic_year == '3rd Year' %}selected{% endif %}>3rd Year (Practice Mode)</option>
+                <option value="4th Year / Final Year" {% if user.academic_year == '4th Year / Final Year' %}selected{% endif %}>4th Year / Final Year (Placement Sprint)</option>
+              </select>
+              <div class="form-text small">This determines your default preparation mode and difficulty level.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="target_role" class="form-label small fw-semibold">Target Placement Role</label>
+              <select class="form-select" id="target_role" name="target_role" required>
+                <option value="Software Development Engineer (SDE)" {% if user.target_role == 'Software Development Engineer (SDE)' or not user.target_role %}selected{% endif %}>Software Development Engineer (SDE)</option>
+                <option value="Frontend Developer" {% if user.target_role == 'Frontend Developer' %}selected{% endif %}>Frontend Developer (Web / Mobile)</option>
+                <option value="Backend Developer" {% if user.target_role == 'Backend Developer' %}selected{% endif %}>Backend Developer (APIs & Microservices)</option>
+                <option value="Data Analyst / Engineer" {% if user.target_role == 'Data Analyst / Engineer' %}selected{% endif %}>Data Analyst / Data Engineer</option>
+                <option value="Cloud / DevOps Engineer" {% if user.target_role == 'Cloud / DevOps Engineer' %}selected{% endif %}>Cloud / DevOps Engineer</option>
+                <option value="Core Engineering / Graduate Trainee" {% if user.target_role == 'Core Engineering / Graduate Trainee' %}selected{% endif %}>Core Engineering / Graduate Trainee</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="study_hours_per_day" class="form-label small fw-semibold">Available Study Hours per Day</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="study_hours_per_day" name="study_hours_per_day" min="1" max="12" step="0.5" value="{{ user.study_hours_per_day or 2.0 }}" required>
+                <span class="input-group-text">Hours / day</span>
+              </div>
+              <div class="form-text small">PlacePilot adjusts task counts to prevent study burnout.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="known_languages" class="form-label small fw-semibold">Known Programming Languages</label>
+              <input type="text" class="form-control" id="known_languages" name="known_languages" value="{{ user.known_languages or 'Python, Java, C++' }}" placeholder="e.g. Python, Java, C++" required>
+              <div class="form-text small">Comma-separated (e.g. Python, C++, Java, JavaScript).</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="deadline" class="form-label small fw-semibold">Expected Placement Target Date</label>
+              <input type="date" class="form-control" id="deadline" name="deadline" value="{{ user.deadline or '' }}" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold d-block">Current Skill Level Self-Assessment</label>
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <div class="form-check p-3 border rounded">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="skill_level" id="skill_beginner" value="Beginner" {% if user.skill_level == 'Beginner' %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold" for="skill_beginner">
+                      Beginner
+                      <div class="text-muted fw-normal small">Need fundamentals first</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check p-3 border rounded">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="skill_level" id="skill_intermediate" value="Intermediate" {% if user.skill_level == 'Intermediate' or not user.skill_level %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold" for="skill_intermediate">
+                      Intermediate
+                      <div class="text-muted fw-normal small">Know basics, ready for DSA & aptitude</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check p-3 border rounded">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="skill_level" id="skill_advanced" value="Advanced" {% if user.skill_level == 'Advanced' %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold" for="skill_advanced">
+                      Advanced
+                      <div class="text-muted fw-normal small">Sprint speed & mock drills</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+              <i class="bi bi-magic me-2"></i>Generate Adaptive Study Plan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

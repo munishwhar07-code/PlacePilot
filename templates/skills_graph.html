@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Skill Dependency Explorer — PlacePilot{% endblock %}
+
+{% block extra_head %}
+<!-- Vis.js Network CDN -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/dist/vis-network.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/dist/dist/vis-network.min.css" />
+<style>
+  #skill-network {
+    width: 100%;
+    height: 600px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h2 class="fw-bold mb-0">Skill Dependency Explorer</h2>
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Prerequisite Knowledge Graph</span>
+    </div>
+    <p class="text-muted small mb-0">Visualizing placement skill learning paths and directional prerequisite relationships.</p>
+  </div>
+  
+  <div class="d-flex gap-2">
+    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 d-flex align-items-center gap-1">
+      <i class="bi bi-check2-circle text-success"></i> Interactive View Active
+    </span>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Graph Visualization Viewport -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+        <span class="fw-bold"><i class="bi bi-diagram-3-fill text-primary me-2"></i>Interactive Skill Graph</span>
+        <div class="small text-muted">
+          <span class="me-2"><span class="badge" style="background-color: #0284c7;">&bull;</span> DSA</span>
+          <span class="me-2"><span class="badge" style="background-color: #0d9488;">&bull;</span> Systems</span>
+          <span class="me-2"><span class="badge" style="background-color: #8b5cf6;">&bull;</span> Databases</span>
+          <span><span class="badge" style="background-color: #f59e0b;">&bull;</span> Programming</span>
+        </div>
+      </div>
+      <div class="card-body p-2 position-relative">
+        <div id="skill-network"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill Node Details & Prerequisite Chain Panel -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-info-circle text-info me-2"></i>Skill Inspector</h5>
+      </div>
+      <div class="card-body p-4" id="skillDetailsPanel">
+        <div class="text-center text-muted py-5" id="inspectorEmptyState">
+          <i class="bi bi-cursor-fill text-secondary fs-2 mb-2 d-block"></i>
+          <h6 class="fw-semibold">Click any skill node</h6>
+          <p class="small text-muted mb-0">Click a node on the graph to inspect its difficulty, category, and direct prerequisite relationships.</p>
+        </div>
+
+        <div id="inspectorContent" style="display: none;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h4 class="fw-bold text-dark mb-0" id="skillName">Skill Name</h4>
+            <span class="badge" id="skillDifficultyBadge">Intermediate</span>
+          </div>
+          <div class="mb-3">
+            <span class="badge bg-light text-dark border" id="skillCategoryBadge">Category</span>
+          </div>
+
+          <h6 class="fw-bold text-secondary small text-uppercase mb-1">Concept Summary</h6>
+          <p class="text-muted small mb-4" id="skillDescription">Description</p>
+
+          <h6 class="fw-bold text-secondary small text-uppercase mb-2">Prerequisites For Next Topics</h6>
+          <ul class="list-group list-group-flush border-top small" id="prereqList">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  {% if graph_data.nodes %}
+  const rawNodes = {{ graph_data.nodes|tojson }};
+  const rawEdges = {{ graph_data.edges|tojson }};
+
+  const categoryColors = {
+    'DSA': { background: '#e0f2fe', border: '#0284c7' },
+    'Systems': { background: '#ccfbf1', border: '#0d9488' },
+    'Databases': { background: '#ede9fe', border: '#8b5cf6' },
+    'Programming': { background: '#fef3c7', border: '#f59e0b' },
+    'General': { background: '#f1f5f9', border: '#64748b' }
+  };
+
+  const nodes = new vis.DataSet(rawNodes.map(n => {
+    const col = categoryColors[n.category] || categoryColors['General'];
+    return {
+      id: n.id,
+      label: n.label,
+      color: {
+        background: col.background,
+        border: col.border,
+        highlight: { background: '#bae6fd', border: '#0369a1' }
+      },
+      font: { color: '#0f172a', face: 'Inter', size: 13, bold: true },
+      shape: 'box',
+      margin: 10,
+      borderWidth: 2
+    };
+  }));
+
+  const edges = new vis.DataSet(rawEdges.map(e => ({
+    from: e.from,
+    to: e.to,
+    arrows: 'to',
+    color: { color: '#94a3b8', highlight: '#0284c7' },
+    smooth: { type: 'cubicBezier', roundness: 0.2 },
+    width: 2
+  })));
+
+  const container = document.getElementById('skill-network');
+  const data = { nodes: nodes, edges: edges };
+  const options = {
+    physics: {
+      stabilization: true,
+      barnesHut: {
+        springLength: 130,
+        gravitationalConstant: -3500
+      }
+    },
+    interaction: {
+      hover: true,
+      tooltipDelay: 200,
+      zoomView: true
+    }
+  };
+
+  const network = new vis.Network(container, data, options);
+
+  // Inspector Panel Handler on Node Click
+  network.on('click', function(params) {
+    if (params.nodes.length > 0) {
+      const selectedId = params.nodes[0];
+      const skillObj = rawNodes.find(n => n.id === selectedId);
+      if (skillObj) {
+        document.getElementById('inspectorEmptyState').style.display = 'none';
+        document.getElementById('inspectorContent').style.display = 'block';
+
+        document.getElementById('skillName').textContent = skillObj.label;
+        document.getElementById('skillDescription').textContent = skillObj.description || "Core placement requirement.";
+        document.getElementById('skillCategoryBadge').textContent = skillObj.category;
+        
+        const diffBadge = document.getElementById('skillDifficultyBadge');
+        diffBadge.textContent = skillObj.difficulty;
+        if (skillObj.difficulty === 'Beginner') {
+          diffBadge.className = 'badge badge-difficulty-easy';
+        } else if (skillObj.difficulty === 'Intermediate') {
+          diffBadge.className = 'badge badge-difficulty-medium';
+        } else {
+          diffBadge.className = 'badge badge-difficulty-hard';
+        }
+
+        // Find outgoing relationships (skills for which this is a prerequisite)
+        const leadsTo = rawEdges.filter(e => e.from === selectedId).map(e => e.to);
+        const prereqList = document.getElementById('prereqList');
+        prereqList.innerHTML = '';
+        if (leadsTo.length > 0) {
+          leadsTo.forEach(target => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item px-0 py-2 d-flex align-items-center justify-content-between text-dark';
+            li.innerHTML = `<span><i class="bi bi-arrow-right-circle text-primary me-2"></i>${target}</span><span class="badge bg-light text-secondary border">Prerequisite</span>`;
+            prereqList.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.className = 'list-group-item px-0 py-2 text-muted';
+          li.textContent = 'Advanced placement milestone (terminal node in this graph).';
+          prereqList.appendChild(li);
+        }
+      }
+    }
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

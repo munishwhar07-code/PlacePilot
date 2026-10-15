@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Question" if question else "Add Aptitude Question" }} — PlacePilot Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm mb-2">
+          <i class="bi bi-arrow-left me-1"></i>Back to Admin
+        </a>
+        <h3 class="fw-bold mb-0">{{ "Edit Aptitude Question" if question else "Create New Aptitude Question" }}</h3>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form action="{{ url_for('admin_aptitude_edit', question_id=question._id) if question else url_for('admin_aptitude_new') }}" method="POST">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Category</label>
+              <select name="category" class="form-select" required>
+                <option value="Quantitative Aptitude" {% if question and question.category == 'Quantitative Aptitude' %}selected{% endif %}>Quantitative Aptitude</option>
+                <option value="Logical Reasoning" {% if question and question.category == 'Logical Reasoning' %}selected{% endif %}>Logical Reasoning</option>
+                <option value="Verbal Ability" {% if question and question.category == 'Verbal Ability' %}selected{% endif %}>Verbal Ability</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Question Text</label>
+              <textarea name="question" class="form-control" rows="3" placeholder="Enter problem statement clearly..." required>{{ question.question if question else '' }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Option A</label>
+              <input type="text" name="option_0" class="form-control" value="{{ question.options[0] if question else '' }}" placeholder="Choice A" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Option B</label>
+              <input type="text" name="option_1" class="form-control" value="{{ question.options[1] if question else '' }}" placeholder="Choice B" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Option C</label>
+              <input type="text" name="option_2" class="form-control" value="{{ question.options[2] if question else '' }}" placeholder="Choice C" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Option D</label>
+              <input type="text" name="option_3" class="form-control" value="{{ question.options[3] if question else '' }}" placeholder="Choice D" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Correct Option</label>
+              <select name="correct_option" class="form-select" required>
+                <option value="0" {% if question and question.correct_option == 0 %}selected{% endif %}>Option A</option>
+                <option value="1" {% if question and question.correct_option == 1 %}selected{% endif %}>Option B</option>
+                <option value="2" {% if question and question.correct_option == 2 %}selected{% endif %}>Option C</option>
+                <option value="3" {% if question and question.correct_option == 3 %}selected{% endif %}>Option D</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Solution Explanation & Working</label>
+              <textarea name="explanation" class="form-control" rows="3" placeholder="Detailed explanation shown to students after submitting quiz..." required>{{ question.explanation if question else '' }}</textarea>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-teal text-white px-4 fw-semibold">
+              <i class="bi bi-check2-circle me-1"></i>Save Question
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

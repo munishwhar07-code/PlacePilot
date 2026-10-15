@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}PlacePilot — Adaptive Placement Preparation System{% endblock %}
+
+{% block public_content %}
+<div class="py-5" style="background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+  <div class="container py-4 text-center">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-primary bg-opacity-25 text-info mb-3 border border-info border-opacity-25 small">
+      <i class="bi bi-stars"></i> Intelligent College Placement Acceleration
+    </div>
+    <h1 class="display-4 fw-bold mb-3">Navigate Your Campus Placement Journey</h1>
+    <p class="lead text-light text-opacity-75 mx-auto mb-4" style="max-width: 720px;">
+      PlacePilot adapts to your academic year, target role, and study bandwidth. From foundational coding and aptitude drills to sprint interview prep.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 shadow">
+        <i class="bi bi-person-plus me-2"></i>Get Started Free
+      </a>
+      <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Student Login
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold">Three Adaptive Preparation Modes</h2>
+    <p class="text-muted">Designed to match where you are in your degree program</p>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm border-top border-4 border-info">
+        <div class="card-body p-4">
+          <div class="badge-mode badge-foundation mb-3">
+            <i class="bi bi-building"></i> Foundation Mode
+          </div>
+          <h4 class="card-title fw-bold">Second Year</h4>
+          <p class="text-muted small">Build bulletproof fundamentals before pressure mounts.</p>
+          <ul class="list-unstyled small text-secondary mt-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Programming syntax & control flow</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Array & String fundamentals</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Basic Quantitative Aptitude</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-info me-2"></i>Communication & self-introduction</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm border-top border-4 border-teal">
+        <div class="card-body p-4">
+          <div class="badge-mode badge-practice mb-3">
+            <i class="bi bi-lightning-charge"></i> Practice Mode
+          </div>
+          <h4 class="card-title fw-bold">Third Year</h4>
+          <p class="text-muted small">Deep dive into interview core topics and problem-solving.</p>
+          <ul class="list-unstyled small text-secondary mt-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>DSA (Trees, Graphs, Stacks, Queues)</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>SQL queries, Joins & DBMS</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>OS & Computer Networks revision</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Resume refinement & project STAR stories</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm border-top border-4 border-warning">
+        <div class="card-body p-4">
+          <div class="badge-mode badge-sprint mb-3">
+            <i class="bi bi-stopwatch"></i> Placement Sprint Mode
+          </div>
+          <h4 class="card-title fw-bold">Final Year</h4>
+          <p class="text-muted small">High-velocity mock drills and interview simulation.</p>
+          <ul class="list-unstyled small text-secondary mt-3">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>High-frequency interview coding patterns</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>Timed company-standard aptitude tests</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>Core CS rapid fire & System Design</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>HR behavioral drills & mock interviews</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mb-5">
+    <h2 class="fw-bold">Platform Capabilities</h2>
+    <p class="text-muted">A full-stack, cohesive toolchain for student placement success</p>
+  </div>
+
+  <div class="row g-4 text-center">
+    <div class="col-md-3">
+      <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+        <div class="text-primary fs-1 mb-2"><i class="bi bi-calendar-week"></i></div>
+        <h5 class="fw-bold">Dynamic Study Planner</h5>
+        <p class="text-muted small">Rule-based daily schedule tailored to your available hours and target job role.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+        <div class="text-success fs-1 mb-2"><i class="bi bi-code-square"></i></div>
+        <h5 class="fw-bold">Embedded Code Editor</h5>
+        <p class="text-muted small">CodeMirror editor with multi-language starter templates, drafts, and sample checks.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+        <div class="text-info fs-1 mb-2"><i class="bi bi-diagram-3-fill"></i></div>
+        <h5 class="fw-bold">Skill Dependency Graph</h5>
+        <p class="text-muted small">Interactive prerequisite tree connecting core computer science and programming concepts.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-4 bg-white rounded-3 shadow-sm h-100">
+        <div class="text-warning fs-1 mb-2"><i class="bi bi-journal-bookmark"></i></div>
+        <h5 class="fw-bold">Revision Tracker</h5>
+        <p class="text-muted small">Log tricky bugs and concepts to review before your company test rounds.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="py-4 bg-white border-top text-center text-muted small">
+  <div class="container">
+    PlacePilot &copy; 2026 — Adaptive Placement Preparation System &bull; All Rights Reserved
+  </div>
+</footer>
+{% endblock %}

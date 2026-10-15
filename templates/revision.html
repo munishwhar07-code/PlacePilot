@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Revision Tracker — PlacePilot{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">Placement Revision Tracker</h2>
+    <p class="text-muted small mb-0">Record coding bugs, conceptual traps, and aptitude shortcuts to review before interview day.</p>
+  </div>
+  <div>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addRevisionModal">
+      <i class="bi bi-plus-circle me-1"></i>Add Topic / Mistake
+    </button>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm p-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-journal-text"></i>
+        </div>
+        <div>
+          <div class="text-muted small">Total Logged Items</div>
+          <div class="fs-4 fw-bold text-dark">{{ total_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm p-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div>
+          <div class="text-muted small">Pending Review</div>
+          <div class="fs-4 fw-bold text-warning">{{ pending_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm p-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-check2-all"></i>
+        </div>
+        <div>
+          <div class="text-muted small">Reviewed & Mastered</div>
+          <div class="fs-4 fw-bold text-success">{{ reviewed_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-pills mb-4 gap-2">
+  <li class="nav-item">
+    <a class="nav-link {% if active_filter == 'all' %}active{% else %}bg-white border text-secondary{% endif %} py-2 px-3 fw-semibold small" href="{{ url_for('revision_tracker', filter='all') }}">
+      All Items ({{ total_count }})
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_filter == 'Pending' %}active{% else %}bg-white border text-secondary{% endif %} py-2 px-3 fw-semibold small" href="{{ url_for('revision_tracker', filter='Pending') }}">
+      Pending ({{ pending_count }})
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_filter == 'Reviewed' %}active{% else %}bg-white border text-secondary{% endif %} py-2 px-3 fw-semibold small" href="{{ url_for('revision_tracker', filter='Reviewed') }}">
+      Reviewed ({{ reviewed_count }})
+    </a>
+  </li>
+</ul>
+
+<!-- Revision Entries Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    {% if entries %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-uppercase text-secondary">
+            <tr>
+              <th style="width: 50px;" class="text-center">Status</th>
+              <th>Topic</th>
+              <th>Mistake or Difficulty Encountered</th>
+              <th>Correct Approach / Revision Notes</th>
+              <th>Revision Date</th>
+              <th class="text-end" style="width: 140px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in entries %}
+            <tr class="{% if item.status == 'Reviewed' %}table-light{% endif %}">
+              <td class="text-center">
+                <form action="{{ url_for('toggle_revision_status', entry_id=item._id) }}" method="POST">
+                  <button type="submit" class="btn btn-sm rounded-circle p-1 {% if item.status == 'Reviewed' %}btn-success text-white{% else %}btn-outline-warning text-warning{% endif %}" style="width: 28px; height: 28px;" title="Toggle Reviewed Status">
+                    <i class="bi {% if item.status == 'Reviewed' %}bi-check-lg{% else %}bi-clock{% endif %}"></i>
+                  </button>
+                </form>
+              </td>
+              <td>
+                <span class="fw-bold text-dark">{{ item.topic }}</span>
+                <div>
+                  <span class="badge {% if item.status == 'Reviewed' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
+                    {{ item.status }}
+                  </span>
+                </div>
+              </td>
+              <td style="max-width: 260px;">
+                <div class="text-secondary small" style="white-space: pre-wrap;">{{ item.mistake }}</div>
+              </td>
+              <td style="max-width: 280px;">
+                <div class="text-dark small" style="white-space: pre-wrap;">{{ item.notes }}</div>
+              </td>
+              <td>
+                <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>{{ item.revision_date }}</span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-light btn-sm text-secondary border me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ item._id }}" title="Edit Entry">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <form action="{{ url_for('delete_revision', entry_id=item._id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this revision entry?');">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Entry">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+
+            <!-- Edit Modal for each Entry -->
+            <div class="modal fade" id="editModal{{ item._id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url_for('edit_revision', entry_id=item._id) }}" method="POST">
+                    <div class="modal-header">
+                      <h5 class="modal-title fw-bold">Edit Revision Entry</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label small fw-semibold">Topic</label>
+                        <input type="text" name="topic" class="form-control" value="{{ item.topic }}" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label small fw-semibold">Mistake or Difficulty</label>
+                        <textarea name="mistake" class="form-control" rows="3" required>{{ item.mistake }}</textarea>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label small fw-semibold">Correct Approach or Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" required>{{ item.notes }}</textarea>
+                      </div>
+                      <div class="row g-2">
+                        <div class="col-6">
+                          <label class="form-label small fw-semibold">Revision Date</label>
+                          <input type="date" name="revision_date" class="form-control" value="{{ item.revision_date }}" required>
+                        </div>
+                        <div class="col-6">
+                          <label class="form-label small fw-semibold">Review Status</label>
+                          <select name="status" class="form-select">
+                            <option value="Pending" {% if item.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Reviewed" {% if item.status == 'Reviewed' %}selected{% endif %}>Reviewed</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="bi bi-journal-plus fs-1 mb-2 d-block text-secondary"></i>
+        <h5>No Revision Entries Found</h5>
+        <p class="small mb-3">Add tough problems, syntax slip-ups, or aptitude formulas you want to remember.</p>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addRevisionModal">
+          <i class="bi bi-plus-circle me-1"></i>Add First Mistake / Topic
+        </button>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Modal: Add New Revision Entry -->
+<div class="modal fade" id="addRevisionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('add_revision') }}" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Log Mistake / Topic for Revision</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Topic</label>
+            <input type="text" name="topic" class="form-control" placeholder="e.g. Binary Search off-by-one / SQL HAVING clause" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Mistake or Difficulty Encountered</label>
+            <textarea name="mistake" class="form-control" rows="3" placeholder="What went wrong or was difficult? e.g. Used low < high instead of low <= high and missed single element targets." required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Correct Approach or Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Correct pattern / formula / checklist to follow next time..." required></textarea>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Target Revision Date</label>
+              <input type="date" name="revision_date" class="form-control" value="{{ current_date }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Initial Status</label>
+              <select name="status" class="form-select">
+                <option value="Pending" selected>Pending</option>
+                <option value="Reviewed">Reviewed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Revision Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

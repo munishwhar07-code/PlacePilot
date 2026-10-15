@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Problem" if problem else "Add New Problem" }} — PlacePilot Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary btn-sm mb-2">
+          <i class="bi bi-arrow-left me-1"></i>Back to Admin
+        </a>
+        <h3 class="fw-bold mb-0">{{ "Edit Coding Problem" if problem else "Create New Coding Problem" }}</h3>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form action="{{ url_for('admin_problem_edit', problem_id=problem._id) if problem else url_for('admin_problem_new') }}" method="POST">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Problem Title</label>
+              <input type="text" name="title" class="form-control" value="{{ problem.title if problem else '' }}" placeholder="e.g. Valid Anagram" required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">URL Slug</label>
+              <input type="text" name="slug" class="form-control" value="{{ problem.slug if problem else '' }}" placeholder="e.g. valid-anagram" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Topic Category</label>
+              <select name="topic" class="form-select" required>
+                <option value="Arrays & Strings" {% if problem and problem.topic == 'Arrays & Strings' %}selected{% endif %}>Arrays & Strings</option>
+                <option value="Searching & Sorting" {% if problem and problem.topic == 'Searching & Sorting' %}selected{% endif %}>Searching & Sorting</option>
+                <option value="Hashing" {% if problem and problem.topic == 'Hashing' %}selected{% endif %}>Hashing</option>
+                <option value="Linked Lists" {% if problem and problem.topic == 'Linked Lists' %}selected{% endif %}>Linked Lists</option>
+                <option value="Stacks & Queues" {% if problem and problem.topic == 'Stacks & Queues' %}selected{% endif %}>Stacks & Queues</option>
+                <option value="Basic Recursion" {% if problem and problem.topic == 'Basic Recursion' %}selected{% endif %}>Basic Recursion</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Difficulty Level</label>
+              <select name="difficulty" class="form-select" required>
+                <option value="Easy" {% if problem and problem.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                <option value="Medium" {% if problem and problem.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Hard" {% if problem and problem.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Problem Description</label>
+              <textarea name="description" class="form-control" rows="4" placeholder="Detailed problem statement, definitions, and requirements..." required>{{ problem.description if problem else '' }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Sample Input</label>
+              <textarea name="sample_input" class="form-control font-monospace small" rows="2" placeholder="e.g. nums = [1, 2, 3], target = 4" required>{{ problem.sample_input if problem else '' }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Sample Output</label>
+              <textarea name="sample_output" class="form-control font-monospace small" rows="2" placeholder="e.g. [0, 2]" required>{{ problem.sample_output if problem else '' }}</textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Constraints</label>
+              <textarea name="constraints" class="form-control font-monospace small" rows="2" placeholder="1 <= nums.length <= 10^4">{{ problem.constraints if problem else '' }}</textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">External Practice Link (LeetCode/GFG)</label>
+              <input type="url" name="external_link" class="form-control" value="{{ problem.external_link if problem else '' }}" placeholder="https://leetcode.com/problems/...">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Python Starter Code</label>
+              <textarea name="starter_python" class="form-control font-monospace small" rows="4" placeholder="def solution():\n    pass">{{ problem.starter_codes.get('python', '') if problem and problem.starter_codes else 'def solution():\n    # Write logic here\n    pass' }}</textarea>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light border">Cancel</a>
+            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+              <i class="bi bi-check2-circle me-1"></i>Save Problem
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

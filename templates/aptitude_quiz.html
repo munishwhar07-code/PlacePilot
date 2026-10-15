@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category }} Quiz — PlacePilot{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <a href="{{ url_for('aptitude_categories') }}" class="btn btn-outline-secondary btn-sm mb-2">
+          <i class="bi bi-arrow-left me-1"></i>Back to Categories
+        </a>
+        <h2 class="fw-bold mb-1">{{ category }} Quiz</h2>
+        <p class="text-muted small mb-0">{{ questions|length }} Questions &bull; Choose the best option for each question.</p>
+      </div>
+      <div>
+        <span class="badge bg-primary fs-6 px-3 py-2"><i class="bi bi-stopwatch me-1"></i>Timed Practice</span>
+      </div>
+    </div>
+
+    <form action="{{ url_for('submit_quiz', category=category) }}" method="POST" id="quizForm">
+      {% for q in questions %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+          <span class="fw-bold text-primary"><i class="bi bi-question-diamond me-2"></i>Question {{ loop.index }} of {{ questions|length }}</span>
+          <span class="badge bg-light text-secondary border">Single Choice</span>
+        </div>
+        <div class="card-body p-4">
+          <p class="fs-6 fw-semibold text-dark mb-4" style="line-height: 1.6;">
+            {{ q.question }}
+          </p>
+
+          <div class="d-flex flex-column gap-2">
+            {% for opt in q.options %}
+            <div class="form-check p-3 border rounded-3 option-card transition-all">
+              <input class="form-check-input ms-0 me-3" type="radio" name="q_{{ q._id }}" id="opt_{{ q._id }}_{{ loop.index0 }}" value="{{ loop.index0 }}">
+              <label class="form-check-label w-100 fw-medium text-secondary" for="opt_{{ q._id }}_{{ loop.index0 }}">
+                <span class="fw-bold me-2">{{ ['A', 'B', 'C', 'D'][loop.index0] }}.</span> {{ opt }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="card border-0 shadow-sm bg-white p-4 mb-5 text-center">
+        <h5 class="fw-bold mb-2">Ready to submit your answers?</h5>
+        <p class="text-muted small mb-3">Your score will be automatically calculated and added to your performance tracking.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{{ url_for('aptitude_categories') }}" class="btn btn-light px-4 border">Cancel</a>
+          <button type="submit" class="btn btn-primary px-5 fw-semibold" onclick="return confirm('Submit quiz and view detailed score & explanations?');">
+            <i class="bi bi-check2-circle me-1"></i>Submit Quiz
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

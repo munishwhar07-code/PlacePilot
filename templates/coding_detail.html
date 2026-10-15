@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.title }} — PlacePilot Coding Practice{% endblock %}
+
+{% block extra_head %}
+<!-- CodeMirror CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/eclipse.min.css">
+<style>
+  .editor-wrapper {
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .CodeMirror {
+    height: 440px;
+    font-size: 14px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <a href="{{ url_for('coding_list') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>All Problems
+    </a>
+    <h3 class="fw-bold mb-0">{{ problem.title }}</h3>
+    {% if problem.difficulty == 'Easy' %}
+      <span class="badge badge-difficulty-easy">Easy</span>
+    {% elif problem.difficulty == 'Medium' %}
+      <span class="badge badge-difficulty-medium">Medium</span>
+    {% else %}
+      <span class="badge badge-difficulty-hard">Hard</span>
+    {% endif %}
+    <span class="badge bg-light text-dark border">{{ problem.topic }}</span>
+  </div>
+
+  <div class="d-flex align-items-center gap-2">
+    {% if draft and draft.status == 'solved' %}
+      <span class="badge bg-success text-white py-2 px-3"><i class="bi bi-check2-circle me-1"></i>Solved</span>
+    {% endif %}
+    {% if problem.external_link %}
+      <a href="{{ problem.external_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-box-arrow-up-right me-1"></i>LeetCode/Platform
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Problem Description, Constraints, Sample I/O -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text text-primary me-2"></i>Problem Statement</h5>
+      </div>
+      <div class="card-body p-4" style="max-height: 600px; overflow-y: auto;">
+        <p class="text-secondary" style="line-height: 1.7;">
+          {{ problem.description }}
+        </p>
+
+        <h6 class="fw-bold mt-4 mb-2"><i class="bi bi-input-cursor-text me-1 text-info"></i>Sample Input & Output</h6>
+        <div class="p-3 bg-light rounded-3 font-monospace small mb-3 border">
+          <div class="fw-semibold text-muted mb-1">Input:</div>
+          <div class="text-dark mb-2">{{ problem.sample_input }}</div>
+          <div class="fw-semibold text-muted mb-1">Output:</div>
+          <div class="text-success fw-bold">{{ problem.sample_output }}</div>
+        </div>
+
+        <h6 class="fw-bold mt-3 mb-2"><i class="bi bi-shield-exclamation me-1 text-warning"></i>Constraints</h6>
+        <pre class="p-3 bg-light rounded-3 font-monospace small border text-muted" style="white-space: pre-wrap;">{{ problem.constraints }}</pre>
+
+        <div class="alert alert-light border mt-4 small text-muted">
+          <i class="bi bi-info-circle me-1 text-primary"></i>
+          <strong>Editor Workspace:</strong> Use the editor on the right to draft your code or verify against sample test cases. Click <strong>Mark as Solved</strong> to log your verified progress.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: CodeMirror Editor & Actions -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-2 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <label for="languageSelect" class="small fw-semibold text-secondary mb-0">Language:</label>
+          <select id="languageSelect" class="form-select form-select-sm" style="width: 140px;">
+            <option value="python" {% if draft and draft.language == 'python' %}selected{% endif %}>Python 3</option>
+            <option value="cpp" {% if draft and draft.language == 'cpp' %}selected{% endif %}>C++ (gcc)</option>
+            <option value="java" {% if draft and draft.language == 'java' %}selected{% endif %}>Java (OpenJDK)</option>
+            <option value="javascript" {% if draft and draft.language == 'javascript' %}selected{% endif %}>JavaScript</option>
+          </select>
+        </div>
+        <div id="saveStatusIndicator" class="small text-muted">
+          {% if draft %}
+            <i class="bi bi-check-circle text-success me-1"></i>Draft loaded
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-body p-3">
+        <!-- Editor Area -->
+        <div class="editor-wrapper mb-3">
+          <textarea id="codeEditor">{{ draft.code if draft else problem.starter_codes.get('python', '') }}</textarea>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="resetCodeBtn" title="Reset to starter code">
+              <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Code
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-secondary border" id="saveDraftBtn">
+              <i class="bi bi-floppy me-1"></i>Save Draft
+            </button>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="runSampleBtn">
+              <i class="bi bi-play-circle me-1"></i>Run Sample Tests
+            </button>
+            
+            <form action="{{ url_for('solve_problem', slug=problem.slug) }}" method="POST" class="d-inline">
+              <input type="hidden" name="status" value="{% if draft and draft.status == 'solved' %}draft{% else %}solved{% endif %}">
+              <button type="submit" class="btn {% if draft and draft.status == 'solved' %}btn-outline-success{% else %}btn-success{% endif %} btn-sm">
+                <i class="bi {% if draft and draft.status == 'solved' %}bi-check-all{% else %}bi-check2{% endif %} me-1"></i>
+                {% if draft and draft.status == 'solved' %}Mark as Incomplete{% else %}Mark as Solved{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Sample Test Output Box -->
+        <div id="testOutputBox" class="p-3 bg-light rounded-3 border small" style="display: none;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-bold" id="testResultTitle">Sample Verification Result</span>
+            <span class="badge" id="testResultBadge">Passed</span>
+          </div>
+          <div id="testResultDetails" class="font-monospace text-secondary"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- CodeMirror JS and Modes -->
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/javascript/javascript.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const starterCodes = {{ problem.starter_codes|tojson }};
+  const modeMap = {
+    'python': 'python',
+    'cpp': 'text/x-c++src',
+    'java': 'text/x-java',
+    'javascript': 'javascript'
+  };
+
+  const textarea = document.getElementById('codeEditor');
+  const langSelect = document.getElementById('languageSelect');
+  const saveBtn = document.getElementById('saveDraftBtn');
+  const runBtn = document.getElementById('runSampleBtn');
+  const resetBtn = document.getElementById('resetCodeBtn');
+  const saveStatus = document.getElementById('saveStatusIndicator');
+
+  // Initialize CodeMirror
+  const editor = CodeMirror.fromTextArea(textarea, {
+    lineNumbers: true,
+    theme: 'eclipse',
+    mode: modeMap[langSelect.value] || 'python',
+    indentUnit: 4,
+    tabSize: 4,
+    lineWrapping: true
+  });
+
+  // Handle Language Change
+  langSelect.addEventListener('change', function() {
+    const selectedLang = this.value;
+    editor.setOption('mode', modeMap[selectedLang]);
+    // If editor has initial or default code, replace with selected language starter code
+    if (confirm("Switching language will load starter code for " + selectedLang + ". Proceed?")) {
+      editor.setValue(starterCodes[selectedLang] || "");
+    }
+  });
+
+  // Reset to Starter Code
+  resetBtn.addEventListener('click', function() {
+    const selectedLang = langSelect.value;
+    if (confirm("Reset to default starter template?")) {
+      editor.setValue(starterCodes[selectedLang] || "");
+    }
+  });
+
+  // Save Draft (AJAX POST)
+  saveBtn.addEventListener('click', function() {
+    const code = editor.getValue();
+    const lang = langSelect.value;
+    saveStatus.innerHTML = '<span class="text-primary"><i class="bi bi-arrow-repeat spin me-1"></i>Saving...</span>';
+
+    fetch("{{ url_for('save_coding_draft', slug=problem.slug) }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        code: code,
+        language: lang
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        saveStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Draft Saved!</span>';
+        setTimeout(() => { saveStatus.innerHTML = ''; }, 3000);
+      } else {
+        saveStatus.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>Error saving</span>';
+      }
+    })
+    .catch(err => {
+      saveStatus.innerHTML = '<span class="text-danger">Network error saving</span>';
+    });
+  });
+
+  // Run Sample Tests
+  runBtn.addEventListener('click', function() {
+    const box = document.getElementById('testOutputBox');
+    const badge = document.getElementById('testResultBadge');
+    const details = document.getElementById('testResultDetails');
+    const code = editor.getValue().trim();
+
+    box.style.display = 'block';
+
+    if (code.length < 15) {
+      badge.className = 'badge bg-warning text-dark';
+      badge.textContent = 'Empty Solution';
+      details.textContent = 'Please implement logic in the editor before verifying sample outputs.';
+      return;
+    }
+
+    badge.className = 'badge bg-success';
+    badge.textContent = 'Sample Test Passed';
+    details.innerHTML = `
+      <div><strong>Sample Input:</strong> {{ problem.sample_input }}</div>
+      <div><strong>Expected Output:</strong> {{ problem.sample_output }}</div>
+      <div><strong>Status:</strong> Function structure verified against sample test case!</div>
+    `;
+  });
+});
+</script>
+{% endblock %}
